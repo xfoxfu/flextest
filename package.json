@@ -1,0 +1,40 @@
+{
+  "name": "flextest",
+  "version": "0.1.0",
+  "description": "flexible test runner",
+  "main": "dist/index.js",
+  "repository": "https://github.com/xfoxfu/flextest.git",
+  "author": "Yuze Fu <i@xfox.me>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "lint": "eslint --ignore-pattern=*.json --quiet src tests --ext .js,.ts",
+    "postinstall": "tsc",
+    "prestart": "tsc",
+    "pretest": "tsc",
+    "format": "prettier --write --ignore-path .gitignore '**/*.{js,ts}' -l"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^4.2.1",
+    "lint-staged": "^10.0.7",
+    "typescript": "^3.7.5"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged && yarn lint"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "prettier --write --ignore-path .gitignore"
+    ]
+  }
+}
