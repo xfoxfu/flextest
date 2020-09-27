@@ -1,6 +1,6 @@
 {
   "parser": "@typescript-eslint/parser",
-  "parserOptions": { "project": "./tsconfig.json" },
+  "parserOptions": { "project": ["./tsconfig.json", "./tests/tsconfig.json"] },
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",

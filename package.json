@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "flexible test runner",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "https://github.com/xfoxfu/flextest.git",
   "author": "Yuze Fu <i@xfox.me>",
   "license": "MIT",
