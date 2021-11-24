@@ -1,7 +1,8 @@
 {
   "extends": "..",
   "compilerOptions": {
-    "noEmit": false
+    "noEmit": true,
+    "rootDir": "."
   },
   "include": ["./**/*"]
 }

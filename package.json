@@ -10,32 +10,25 @@
   "private": false,
   "scripts": {
     "lint": "eslint --ignore-pattern=*.json --quiet src tests --ext .js,.ts",
-    "postinstall": "tsc",
-    "prestart": "tsc",
-    "pretest": "tsc",
-    "format": "prettier --write --ignore-path .gitignore '**/*.{js,ts}' -l"
+    "format": "prettier --write --ignore-path .gitignore '**/*.{js,ts}' -l",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.5",
-    "@commitlint/config-conventional": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^2.18.0",
-    "@typescript-eslint/parser": "^2.18.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-prettier": "^3.1.2",
-    "husky": "^4.2.1",
-    "lint-staged": "^10.0.7",
-    "typescript": "^3.7.5"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged && pnpm lint"
-    }
+    "@commitlint/cli": "^15.0.0",
+    "@commitlint/config-conventional": "^15.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.1.2",
+    "typescript": "^4.5.2"
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "prettier --write --ignore-path .gitignore"
+      "prettier --write --ignore-path .gitignore",
+      "pnpm lint"
     ]
   }
 }
