@@ -12,6 +12,7 @@
     "lint": "eslint --ignore-pattern=*.json --quiet src tests --ext .js,.ts",
     "format": "prettier --write --ignore-path .gitignore '**/*.{js,ts}' -l",
     "prepare": "husky install",
+    "build": "tsc",
     "test": "ava"
   },
   "devDependencies": {
