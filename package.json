@@ -31,8 +31,8 @@
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "prettier --write --ignore-path .gitignore",
-      "pnpm lint"
+      "pnpm lint",
+      "prettier --write --ignore-path .gitignore"
     ]
   },
   "ava": {
