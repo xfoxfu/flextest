@@ -31,8 +31,8 @@ const TEST_CTX_STORAGE = new AsyncLocalStorage<TestContext>();
 
 type IHook = {
   (up: () => () => void): void;
-  <T>(up: () => T): T;
   <T>(up: () => [T, () => void]): T;
+  <T>(up: () => T): T;
 };
 export const hook: IHook = <T>(
   up: () => T | (() => void) | [T, () => void]
