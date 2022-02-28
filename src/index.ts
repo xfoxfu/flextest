@@ -97,11 +97,15 @@ export const test = (name: string, f: () => void): TestResult => {
   }
   ctx.HOOK_STACK.pop();
 
+  if (ctx.CURRENT_NODE.childs.some((c) => c.status === "failed")) {
+    result = "failed";
+  }
   ctx.CURRENT_NODE.status = result;
+  const self = ctx.CURRENT_NODE;
   // recover
   if (ctx.CURRENT_PARENT !== null) ctx.CURRENT_NODE = ctx.CURRENT_PARENT;
   else ctx.CURRENT_NODE = ctx.TEST_ROOT;
   ctx.CURRENT_PARENT = parentRecover;
 
-  return ctx.CURRENT_NODE;
+  return self;
 };
