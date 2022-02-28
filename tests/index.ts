@@ -1,15 +1,12 @@
 import ava from "ava";
-import { hook, test, finish, globalReset, getResults } from "../src";
+import { hook, test } from "../src";
 
-ava.beforeEach(() => globalReset());
-
-ava.serial("basic succeeding test", (t) => {
-  test("sample test", () => {
+ava("basic succeeding test", (t) => {
+  const results = test("sample test", () => {
     /* empty */
   });
-  finish();
 
-  t.deepEqual(getResults(), {
+  t.deepEqual(results, {
     name: "$root",
     status: "ok",
     childs: [
@@ -22,13 +19,12 @@ ava.serial("basic succeeding test", (t) => {
   });
 });
 
-ava.serial("basic failed test", (t) => {
-  test("sample test", () => {
+ava("basic failed test", (t) => {
+  const results = test("sample test", () => {
     throw new Error();
   });
-  finish();
 
-  t.deepEqual(getResults(), {
+  t.deepEqual(results, {
     name: "$root",
     status: "ok",
     childs: [

@@ -1,4 +1,33 @@
-const HOOK_STACK: (() => void)[][] = [];
+import { AsyncLocalStorage } from "async_hooks";
+
+type TestResult = {
+  name: string;
+  status: "ok" | "failed" | "pending";
+  childs: TestResult[];
+};
+
+interface TestContext {
+  TEST_ROOT: TestResult;
+  CURRENT_PARENT: TestResult | null;
+  CURRENT_NODE: TestResult;
+  HOOK_STACK: (() => void)[][];
+}
+
+const createNewContext = (): TestContext => {
+  const test_root: TestResult = {
+    name: "$root",
+    status: "ok",
+    childs: [],
+  };
+  return {
+    TEST_ROOT: test_root,
+    CURRENT_PARENT: null,
+    CURRENT_NODE: test_root,
+    HOOK_STACK: [],
+  };
+};
+
+const TEST_CTX_STORAGE = new AsyncLocalStorage<TestContext>();
 
 type IHook = {
   (up: () => () => void): void;
@@ -8,13 +37,18 @@ type IHook = {
 export const hook: IHook = <T>(
   up: () => T | (() => void) | [T, () => void]
 ): T => {
+  const ctx = TEST_CTX_STORAGE.getStore();
+  if (ctx === undefined) {
+    throw new Error("please use hook inside a test definition");
+  }
+
   if (typeof up !== "function") {
     throw new TypeError("hook parameter must be a function");
   }
   const ret = up();
   if (typeof ret === "function") {
     // useHook(up: () => () => void): void;
-    HOOK_STACK[HOOK_STACK.length - 1].push(ret as () => void);
+    ctx.HOOK_STACK[ctx.HOOK_STACK.length - 1].push(ret as () => void);
     return undefined as unknown as T;
   } else if (
     Array.isArray(ret) &&
@@ -22,39 +56,31 @@ export const hook: IHook = <T>(
     typeof ret[ret.length - 1] === "function"
   ) {
     // function useHook<T>(up: () => [T, () => void]): T;
-    HOOK_STACK[HOOK_STACK.length - 1].push(ret[1]);
+    ctx.HOOK_STACK[ctx.HOOK_STACK.length - 1].push(ret[1]);
     return ret[0];
   }
   return ret as T;
 };
 
-type TestResult = {
-  name: string;
-  status: "ok" | "failed" | "pending";
-  childs: TestResult[];
-};
+export const test = (name: string, f: () => void): TestResult => {
+  const ctx = TEST_CTX_STORAGE.getStore();
+  if (ctx === undefined) {
+    return TEST_CTX_STORAGE.run(createNewContext(), () => test(name, f));
+  }
 
-const TEST_ROOT: TestResult = {
-  name: "$root",
-  status: "ok",
-  childs: [],
-};
-let CURRENT_PARENT: TestResult | null = null;
-let CURRENT_NODE: TestResult = TEST_ROOT;
-
-export const test = (name: string, f: () => void): void => {
-  CURRENT_NODE.childs.push({
+  ctx.CURRENT_NODE.childs.push({
     name,
     status: "pending",
     childs: [],
   });
 
   // traverse
-  const parentRecover = CURRENT_PARENT;
-  CURRENT_PARENT = CURRENT_NODE;
-  CURRENT_NODE = CURRENT_NODE.childs[CURRENT_NODE.childs.length - 1];
+  const parentRecover = ctx.CURRENT_PARENT;
+  ctx.CURRENT_PARENT = ctx.CURRENT_NODE;
+  ctx.CURRENT_NODE =
+    ctx.CURRENT_NODE.childs[ctx.CURRENT_NODE.childs.length - 1];
   // setup
-  HOOK_STACK.push([]);
+  ctx.HOOK_STACK.push([]);
 
   // run tests
   let result: TestResult["status"] = "pending";
@@ -66,39 +92,16 @@ export const test = (name: string, f: () => void): void => {
   }
 
   // teardown
-  for (const fn of HOOK_STACK[HOOK_STACK.length - 1]) {
+  for (const fn of ctx.HOOK_STACK[ctx.HOOK_STACK.length - 1]) {
     fn();
   }
-  HOOK_STACK.pop();
+  ctx.HOOK_STACK.pop();
 
-  CURRENT_NODE.status = result;
+  ctx.CURRENT_NODE.status = result;
   // recover
-  if (CURRENT_PARENT !== null) CURRENT_NODE = CURRENT_PARENT;
-  else CURRENT_NODE = TEST_ROOT;
-  CURRENT_PARENT = parentRecover;
-};
+  if (ctx.CURRENT_PARENT !== null) ctx.CURRENT_NODE = ctx.CURRENT_PARENT;
+  else ctx.CURRENT_NODE = ctx.TEST_ROOT;
+  ctx.CURRENT_PARENT = parentRecover;
 
-export const finish = (node?: TestResult, prefix?: string): void => {
-  if (node === undefined) {
-    node = TEST_ROOT;
-  }
-  let curPrefix = "";
-  if (node !== TEST_ROOT) {
-    curPrefix = `${prefix ? `${prefix} > ` : ""}${node.name}`;
-    console.log(curPrefix, node.status);
-  }
-  for (const child of node.childs) {
-    finish(child, curPrefix);
-  }
-};
-
-export const getResults = () => TEST_ROOT;
-
-export const globalReset = () => {
-  TEST_ROOT.name = "$root";
-  TEST_ROOT.status = "ok";
-  TEST_ROOT.childs.splice(0, TEST_ROOT.childs.length);
-  CURRENT_PARENT = null;
-  CURRENT_NODE = TEST_ROOT;
-  HOOK_STACK.splice(0, HOOK_STACK.length);
+  return ctx.CURRENT_NODE;
 };
