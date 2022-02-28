@@ -6,7 +6,7 @@ type IHook = {
   <T>(up: () => [T, () => void]): T;
 };
 export const hook: IHook = <T>(
-  up: () => T | (() => void) | [T, () => void],
+  up: () => T | (() => void) | [T, () => void]
 ): T => {
   if (typeof up !== "function") {
     throw new TypeError("hook parameter must be a function");
@@ -15,7 +15,7 @@ export const hook: IHook = <T>(
   if (typeof ret === "function") {
     // useHook(up: () => () => void): void;
     HOOK_STACK[HOOK_STACK.length - 1].push(ret as () => void);
-    return (undefined as unknown) as T;
+    return undefined as unknown as T;
   } else if (
     Array.isArray(ret) &&
     ret.length === 2 &&
@@ -87,7 +87,18 @@ export const finish = (node?: TestResult, prefix?: string): void => {
     curPrefix = `${prefix ? `${prefix} > ` : ""}${node.name}`;
     console.log(curPrefix, node.status);
   }
-  for (const child of node?.childs) {
+  for (const child of node.childs) {
     finish(child, curPrefix);
   }
+};
+
+export const getResults = () => TEST_ROOT;
+
+export const globalReset = () => {
+  TEST_ROOT.name = "$root";
+  TEST_ROOT.status = "ok";
+  TEST_ROOT.childs.splice(0, TEST_ROOT.childs.length);
+  CURRENT_PARENT = null;
+  CURRENT_NODE = TEST_ROOT;
+  HOOK_STACK.splice(0, HOOK_STACK.length);
 };
